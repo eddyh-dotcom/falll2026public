@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Fields & Vector Spaces Lab</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vector Spaces">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        .canvas-wrapper canvas { touch-action: none; }
+        .field-hint { font-size: 0.78rem; opacity: 0.7; margin-top: 4px; }
+        .text-success { color: #10b981; } .text-error { color: #ef4444; }
+        .data-table td:last-child { font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="app-sidebar">
+            <div class="logo-area">
+                <div class="logo-flex">
+                    <div class="logo-icon">V</div>
+                    <div class="logo-text">
+                        <h1>Vector Spaces</h1>
+                        <span>Fields &amp; Subspaces Lab</span>
+                    </div>
+                </div>
+                <button class="mobile-menu-close" id="mobile-menu-close" aria-label="Close Navigation Menu"><i data-lucide="x"></i></button>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard &amp; Reference</span></button>
+                <button class="nav-btn" data-tab="fieldlab"><i data-lucide="grid-3x3"></i><span>Fields &amp; Axiom Checker</span></button>
+                <button class="nav-btn" data-tab="subcheck"><i data-lucide="target"></i><span>Subspace Checker</span></button>
+                <button class="nav-btn" data-tab="spanlab"><i data-lucide="axis-3d"></i><span>Span &amp; Independence Lab</span></button>
+                <button class="nav-btn" data-tab="quiz"><i data-lucide="graduation-cap"></i><span>Practice Quiz Hub</span></button>
+            </nav>
+        </aside>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Navigation Menu"><i data-lucide="menu"></i></button>
+                <div class="header-title">
+                    <h2 id="current-module-title">Dashboard &amp; Reference</h2>
+                    <p id="current-module-desc"></p>
+                </div>
+                <div class="header-actions">
+                    <div class="badge badge-lectures">Linear Algebra</div>
+                    <button class="btn btn-secondary btn-icon" id="toggle-theme-btn" title="Toggle Theme"><i data-lucide="sun"></i></button>
+                </div>
+            </header>
+
+            <div class="view-container">
+                <!-- DASHBOARD -->
+                <section class="tab-view active" id="view-dashboard">
+                    <div class="dashboard-grid">
+                        <div class="welcome-card card-glass">
+                            <h3>Fields &amp; Vector Spaces Lab</h3>
+                            <p>Fields and their axioms ($\mathbb Q$, $\mathbb R$, $\mathbb C$, $\mathbb Z_p$), the vector-space axioms and their consequences, the standard spaces ($\mathbb R^n$, $\mathbb C^n$, polynomials, functions, matrices), the subspace test with worked examples and counterexamples, span, linear independence, bases and dimension. Built from standard textbook material only.</p>
+                            <div class="welcome-actions">
+                                <button class="btn btn-primary" onclick="switchTab('quiz')"><span>Start Practice Quiz</span><i data-lucide="arrow-right"></i></button>
+                                <button class="btn btn-outline" onclick="switchTab('subcheck')"><span>Open the Subspace Checker</span><i data-lucide="target"></i></button>
+                            </div>
+                        </div>
+                        <div class="lectures-container">
+                            <div class="section-title">
+                                <h3>Reference Hub</h3>
+                                <span>Select a chapter to view definitions &amp; key results</span>
+                            </div>
+                            <div class="lectures-tabs">
+                                <button class="lecture-tab-btn" data-lec="fields">1 · Fields</button>
+                                <button class="lecture-tab-btn" data-lec="vs">2 · Vector spaces</button>
+                                <button class="lecture-tab-btn" data-lec="examples">3 · Standard examples</button>
+                                <button class="lecture-tab-btn active" data-lec="subspace">4 · Subspaces</button>
+                                <button class="lecture-tab-btn" data-lec="span">5 · Span</button>
+                                <button class="lecture-tab-btn" data-lec="indep">6 · Independence &amp; bases</button>
+                                <button class="lecture-tab-btn" data-lec="traps">7 · Techniques &amp; traps</button>
+                            </div>
+                            <div class="lecture-content-display card-glass" id="lecture-doc-card"><div class="loader">Loading references...</div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FIELD LAB -->
+                <section class="tab-view" id="view-fieldlab">
+                    <div class="sub-tabs" data-group="fl">
+                        <button class="sub-tab-btn active" data-sub="zn">Z_n tables</button>
+                        <button class="sub-tab-btn" data-sub="axioms">Vector-space axiom checker</button>
+                    </div>
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <div class="sub-panel" data-group="fl" data-sub="zn">
+                                <h3>Integers mod n</h3>
+                                <div class="slider-group">
+                                    <div class="slider-label"><span>n</span><span id="fl-n-val">7</span></div>
+                                    <input type="range" id="fl-n" min="2" max="13" value="7" class="slider">
+                                </div>
+                                <div class="input-group">
+                                    <label for="fl-op">Table</label>
+                                    <select id="fl-op">
+                                        <option value="mul" selected>Multiplication</option>
+                                        <option value="add">Addition</option>
+                                    </select>
+                                </div>
+                                <p class="field-hint">Green cells mark inverse pairs; red cells mark zero divisors (non-zero × non-zero = 0).</p>
+                            </div>
+                            <div class="sub-panel hidden" data-group="fl" data-sub="axioms">
+                                <h3>Candidate operations on R²</h3>
+                                <div class="input-group">
+                                    <label for="ax-preset">Operations</label>
+                                    <select id="ax-preset">
+                                        <option value="usual">Usual operations</option>
+                                        <option value="smulFirst" selected>a⊙(x,y) = (ax, y)</option>
+                                        <option value="smulZero">a⊙(x,y) = (ax, 0)</option>
+                                        <option value="smulSq">a⊙(x,y) = (a²x, a²y)</option>
+                                        <option value="addSwap">(x₁,y₁)⊕(x₂,y₂) = (x₁+y₂, x₂+y₁)</option>
+                                        <option value="addZeroY">(x₁,y₁)⊕(x₂,y₂) = (x₁+x₂, 0)</option>
+                                        <option value="addMax">(x₁,y₁)⊕(x₂,y₂) = (max(x₁,x₂), y₁+y₂)</option>
+                                        <option value="shifted">Shifted: ⊕ = (x₁+x₂−1, y₁+y₂), a⊙ = (ax−a+1, ay)</option>
+                                        <option value="positive">R₊²: ⊕ = componentwise product, a⊙v = vᵃ</option>
+                                    </select>
+                                </div>
+                                <p class="field-hint">Each axiom is tested on 200 random samples. A failure shows the witness.</p>
+                                <button class="btn btn-primary btn-full" id="btn-ax-run">Re-run with new samples</button>
+                            </div>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="sub-panel" data-group="fl" data-sub="zn">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header"><div class="canvas-legend"><span class="legend-item"><span class="legend-color" style="background:#10b981"></span> inverse pair</span><span class="legend-item"><span class="legend-color" style="background:#ef4444"></span> zero divisors</span></div></div>
+                                    <div class="canvas-wrapper" style="min-height:360px"><canvas id="canvas-zn"></canvas></div>
+                                </div>
+                                <div class="math-result-card card-glass"><h4>Is it a field?</h4><div id="fl-results" class="math-latex-container"></div></div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="fl" data-sub="axioms">
+                                <div class="math-result-card card-glass"><h4>Axiom by axiom</h4><div id="ax-results" class="math-latex-container"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SUBSPACE CHECKER -->
+                <section class="tab-view" id="view-subcheck">
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <h3>Candidate subset</h3>
+                            <div class="input-group">
+                                <label for="sc-preset">Set</label>
+                                <select id="sc-preset">
+                                    <optgroup label="Subsets of R²">
+                                        <option value="line0">Line y = 2x</option>
+                                        <option value="line1">Line y = 2x + 1</option>
+                                        <option value="axes" selected>Union of the axes, xy = 0</option>
+                                        <option value="cross">Pair of lines y = ±x</option>
+                                        <option value="quadrant">First quadrant</option>
+                                        <option value="absline">y = |x|</option>
+                                        <option value="disc">Unit disc</option>
+                                        <option value="parabola">Parabola y = x²</option>
+                                        <option value="lattice">Integer lattice Z²</option>
+                                        <option value="zero">Just the origin</option>
+                                        <option value="all">All of R²</option>
+                                    </optgroup>
+                                    <optgroup label="Subsets of R³">
+                                        <option value="plane0">Plane x + y + z = 0</option>
+                                        <option value="plane1">Plane x + y + z = 1</option>
+                                        <option value="line3">Line t(1, 2, 1)</option>
+                                        <option value="octant">Octant x, y, z ≥ 0</option>
+                                        <option value="xyz0">Coordinate planes, xyz = 0</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <p class="field-hint">The checker tests (S1) zero vector, (S2) closure under +, (S3) closure under scalars, and draws the witnesses: u, v in blue, u + v in pink, cv in orange. A red ring marks a point that left the set.</p>
+                            <button class="btn btn-primary btn-full" id="btn-sc-witness">New random witnesses</button>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="canvas-container card-glass">
+                                <div class="canvas-header"><div class="canvas-legend"><span class="legend-item"><span class="legend-color" style="background:#60a5fa"></span> u, v</span><span class="legend-item"><span class="legend-color" style="background:#f472b6"></span> u + v</span><span class="legend-item"><span class="legend-color" style="background:#fb923c"></span> c·v</span></div></div>
+                                <div class="canvas-wrapper" style="min-height:380px"><canvas id="canvas-sub"></canvas></div>
+                            </div>
+                            <div class="math-result-card card-glass"><h4>Subspace test</h4><div id="sc-results" class="math-latex-container"></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SPAN LAB -->
+                <section class="tab-view" id="view-spanlab">
+                    <div class="sub-tabs" data-group="sp">
+                        <button class="sub-tab-btn active" data-sub="rn">Vectors in R³</button>
+                        <button class="sub-tab-btn" data-sub="poly">Polynomials in P₃</button>
+                    </div>
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <div class="sub-panel" data-group="sp" data-sub="rn">
+                                <h3>Vectors</h3>
+                                <div class="input-group">
+                                    <label for="sp-preset">Preset</label>
+                                    <select id="sp-preset">
+                                        <option value="">— choose —</option>
+                                        <option value="indep">Three independent vectors</option>
+                                        <option value="plane">Three vectors in a plane</option>
+                                        <option value="line">Three multiples of one vector</option>
+                                        <option value="off">Two vectors, w off the plane</option>
+                                        <option value="zero">A set containing 0</option>
+                                    </select>
+                                </div>
+                                <div class="input-group"><label for="sp-v1">v₁ (x, y, z)</label><input type="text" id="sp-v1" value="1, 2, 0"></div>
+                                <div class="input-group"><label for="sp-v2">v₂</label><input type="text" id="sp-v2" value="0, 1, 1"></div>
+                                <div class="input-group"><label for="sp-v3">v₃ (optional)</label><input type="text" id="sp-v3" value="1, 3, 1"></div>
+                                <div class="input-group"><label for="sp-w">Test vector w (optional)</label><input type="text" id="sp-w" value="2, 5, 1"></div>
+                                <button class="btn btn-primary btn-full" id="btn-sp-run">Analyse</button>
+                            </div>
+                            <div class="sub-panel hidden" data-group="sp" data-sub="poly">
+                                <h3>Polynomials (coefficients a₀, a₁, a₂, a₃)</h3>
+                                <div class="input-group"><label for="pp-p1">p₁</label><input type="text" id="pp-p1" value="1, 1, 0, 0" placeholder="1 + x"></div>
+                                <div class="input-group"><label for="pp-p2">p₂</label><input type="text" id="pp-p2" value="1, -1, 0, 0" placeholder="1 − x"></div>
+                                <div class="input-group"><label for="pp-p3">p₃ (optional)</label><input type="text" id="pp-p3" value="0, 0, 1, 0" placeholder="x²"></div>
+                                <div class="input-group"><label for="pp-p4">p₄ (optional)</label><input type="text" id="pp-p4" value="" placeholder="e.g. 0, 0, 0, 1"></div>
+                                <div class="input-group"><label for="pp-target">Test polynomial q (optional)</label><input type="text" id="pp-target" value="3, 1, 2, 0"></div>
+                                <p class="field-hint">Constant term first: <code>2, 0, -1, 0</code> is 2 − x².</p>
+                                <button class="btn btn-primary btn-full" id="btn-pp-run">Analyse</button>
+                            </div>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="sub-panel" data-group="sp" data-sub="rn">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header"><div class="canvas-legend"><span class="legend-item"><span class="legend-color" style="background:#60a5fa"></span> vᵢ</span><span class="legend-item"><span class="legend-color" style="background:#a78bfa"></span> span</span><span class="legend-item"><span class="legend-color" style="background:#10b981"></span> w in span</span><span class="legend-item"><span class="legend-color" style="background:#f472b6"></span> w not in span</span></div></div>
+                                    <div class="canvas-wrapper" style="min-height:380px"><canvas id="canvas-span"></canvas></div>
+                                </div>
+                                <div class="math-result-card card-glass"><h4>Rank, independence, membership</h4><div id="sp-results" class="math-latex-container"></div></div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="sp" data-sub="poly">
+                                <div class="math-result-card card-glass"><h4>Rank, independence, membership</h4><div id="pp-results" class="math-latex-container"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- QUIZ -->
+                <section class="tab-view" id="view-quiz">
+                    <div class="quiz-layout">
+                        <div class="quiz-sidebar card-glass">
+                            <h3>Practice Settings</h3>
+                            <div class="input-group mt-3"><label for="quiz-mode">Quiz Mode</label><select id="quiz-mode"></select></div>
+                            <div class="checkbox-group mt-3" id="quiz-topics-checkboxes">
+                                <p class="label-like">Topics to Include:</p>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="fieldAxioms" checked><span class="checkmark"></span>Fields: axioms &amp; examples (Ch 1)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="fieldArith" checked><span class="checkmark"></span>Arithmetic in Z_p (Ch 1)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="vsAxioms" checked><span class="checkmark"></span>Vector-space axioms (Ch 2)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="vsExamples" checked><span class="checkmark"></span>Standard spaces &amp; dimension (Ch 3)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="subspaceRn" checked><span class="checkmark"></span>Subspaces of R^n (Ch 4)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="subspacePoly" checked><span class="checkmark"></span>Subspaces of polynomial spaces (Ch 4)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="subspaceMatFn" checked><span class="checkmark"></span>Matrix &amp; function subspaces (Ch 4)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="spanTest" checked><span class="checkmark"></span>Span &amp; membership (Ch 5)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="independence" checked><span class="checkmark"></span>Linear independence (Ch 6)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="basisDim" checked><span class="checkmark"></span>Bases &amp; dimension (Ch 6)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="subOps" checked><span class="checkmark"></span>Intersections, unions, sums (Ch 4)</label>
+                            </div>
+                            <button class="btn btn-primary btn-full mt-4" id="btn-quiz-start">Generate New Quiz</button>
+                            <div class="info-note mt-4 hidden" data-quiz-guide="setup" data-typeset>
+                                <h4><i data-lucide="help-circle"></i> How to approach these</h4>
+                                <p>1. For "is it a subspace?": check $\mathbf 0$ first, then try $c = -1$ and $c = 2$, then add two members from different "pieces" of the condition.</p>
+                                <p>2. Homogeneous linear conditions ($= 0$, no products, no inequalities) give subspaces; everything else is suspect.</p>
+                                <p>3. Span, independence and membership all become one row reduction with the vectors as columns.</p>
+                                <p>4. For invented operations, test $1v = v$ and $(a+b)v = av + bv$ first.</p>
+                            </div>
+                        </div>
+                        <div class="quiz-card-panel card-glass" id="quiz-question-card">
+                            <div class="quiz-intro">
+                                <i data-lucide="graduation-cap" class="quiz-large-icon"></i>
+                                <h3>Test Your Vector Space Skills</h3>
+                                <p>Select your topics on the left and click "Generate New Quiz" to start a custom practice session.</p>
+                            </div>
+                            <div class="quiz-active-state hidden">
+                                <div class="quiz-header"><span class="quiz-question-num" id="quiz-q-num">Question 1 of 10</span><span class="quiz-topic-badge" id="quiz-q-topic">Topic</span></div>
+                                <div class="quiz-question-text" id="quiz-q-text"></div>
+                                <div class="quiz-question-math" id="quiz-q-math"></div>
+                                <div class="quiz-options-list" id="quiz-options"></div>
+                                <div class="quiz-footer">
+                                    <button class="btn btn-secondary" id="btn-quiz-skip">Skip</button>
+                                    <button class="btn btn-primary" id="btn-quiz-submit" disabled>Check Answer</button>
+                                </div>
+                                <div class="quiz-explanation-box card-glass hidden" id="quiz-explanation">
+                                    <div class="explanation-status" id="quiz-result-status"><i data-lucide="check-circle" class="status-icon icon-success"></i><span id="quiz-result-text">Correct!</span></div>
+                                    <div class="explanation-text" id="quiz-explanation-text"></div>
+                                    <button class="btn btn-primary mt-3" id="btn-quiz-next">Next Question <i data-lucide="arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script src="lab-core.js"></script>
+    <script src="content.js"></script>
+    <script src="visualizers.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(err => console.warn('SW registration failed:', err)); });
+        }
+    </script>
+</body>
+</html>

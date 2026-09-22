@@ -1,0 +1,14 @@
+# Netlify config for a static PWA — no build step. Drag-and-drop this folder at
+# netlify.com/drop, or connect it as a git repo with this folder as the base.
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
