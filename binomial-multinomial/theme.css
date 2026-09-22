@@ -1,0 +1,10 @@
+:root {
+    --accent-rgb: 251, 191, 36;
+    --primary-rgb: 217, 119, 6;
+    --primary-hover: #df8f32;
+}
+.light-theme {
+    --accent-rgb: 180, 83, 9;
+    --primary-rgb: 180, 83, 9;
+    --primary-hover: #c17135;
+}

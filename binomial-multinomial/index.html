@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Binomial & Multinomial Lab</title>
+    <!-- PWA: installable phone app -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d97706">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Binomial Lab">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Styles: shared core + per-app accent palette -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        .canvas-wrapper canvas { touch-action: none; }
+        .field-hint { font-size: 0.78rem; opacity: 0.7; margin-top: 4px; }
+        .row-inputs.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="app-sidebar">
+            <div class="logo-area">
+                <div class="logo-flex">
+                    <div class="logo-icon">Σ</div>
+                    <div class="logo-text">
+                        <h1>Binomial Lab</h1>
+                        <span>Binomial &amp; Multinomial Theorems</span>
+                    </div>
+                </div>
+                <button class="mobile-menu-close" id="mobile-menu-close" aria-label="Close Navigation Menu">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard &amp; Reference</span>
+                </button>
+                <button class="nav-btn" data-tab="pascal">
+                    <i data-lucide="triangle"></i>
+                    <span>Pascal's Triangle &amp; Paths</span>
+                </button>
+                <button class="nav-btn" data-tab="expand">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Binomial Expansion Tool</span>
+                </button>
+                <button class="nav-btn" data-tab="multi">
+                    <i data-lucide="layers"></i>
+                    <span>Multinomial Explorer</span>
+                </button>
+                <button class="nav-btn" data-tab="quiz">
+                    <i data-lucide="graduation-cap"></i>
+                    <span>Practice Quiz Hub</span>
+                </button>
+            </nav>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Navigation Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="header-title">
+                    <h2 id="current-module-title">Dashboard &amp; Reference</h2>
+                    <p id="current-module-desc"></p>
+                </div>
+                <div class="header-actions">
+                    <div class="badge badge-lectures">Combinatorics</div>
+                    <button class="btn btn-secondary btn-icon" id="toggle-theme-btn" title="Toggle Theme">
+                        <i data-lucide="sun"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="view-container">
+                <!-- ============================ DASHBOARD ============================ -->
+                <section class="tab-view active" id="view-dashboard">
+                    <div class="dashboard-grid">
+                        <div class="welcome-card card-glass">
+                            <h3>Binomial &amp; Multinomial Lab</h3>
+                            <p>Binomial coefficients, the binomial theorem and its standard consequences (row sums, alternating sums, weighted sums, Vandermonde, hockey stick), and the multinomial theorem. Every identity comes with its usual algebraic derivation and its counting proof. Built from standard textbook material only.</p>
+                            <div class="welcome-actions">
+                                <button class="btn btn-primary" onclick="switchTab('quiz')">
+                                    <span>Start Practice Quiz</span>
+                                    <i data-lucide="arrow-right"></i>
+                                </button>
+                                <button class="btn btn-outline" onclick="switchTab('pascal')">
+                                    <span>Open Pascal's Triangle</span>
+                                    <i data-lucide="triangle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="lectures-container">
+                            <div class="section-title">
+                                <h3>Reference Hub</h3>
+                                <span>Select a chapter to view formulas &amp; key results</span>
+                            </div>
+                            <div class="lectures-tabs">
+                                <button class="lecture-tab-btn" data-lec="coef">1 · Coefficients</button>
+                                <button class="lecture-tab-btn active" data-lec="binom">2 · Binomial theorem</button>
+                                <button class="lecture-tab-btn" data-lec="ident">3 · Identities</button>
+                                <button class="lecture-tab-btn" data-lec="multi">4 · Multinomial coefficients</button>
+                                <button class="lecture-tab-btn" data-lec="multith">5 · Multinomial theorem</button>
+                                <button class="lecture-tab-btn" data-lec="apps">6 · Applications</button>
+                                <button class="lecture-tab-btn" data-lec="traps">7 · Techniques &amp; traps</button>
+                            </div>
+                            <div class="lecture-content-display card-glass" id="lecture-doc-card">
+                                <div class="loader">Loading references...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================ PASCAL ============================ -->
+                <section class="tab-view" id="view-pascal">
+                    <div class="sub-tabs" data-group="pt">
+                        <button class="sub-tab-btn active" data-sub="tri">Triangle &amp; identities</button>
+                        <button class="sub-tab-btn" data-sub="lat">Lattice paths</button>
+                    </div>
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <div class="sub-panel" data-group="pt" data-sub="tri">
+                                <h3>Triangle</h3>
+                                <div class="slider-group">
+                                    <div class="slider-label"><span>Rows drawn</span><span id="pt-rows-val">12</span></div>
+                                    <input type="range" id="pt-rows" min="4" max="24" value="12" class="slider">
+                                </div>
+                                <div class="row-inputs">
+                                    <div class="input-group">
+                                        <label for="pt-n">n (row)</label>
+                                        <input type="number" id="pt-n" value="6" min="0" max="24" step="1">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="pt-k">k (column)</label>
+                                        <input type="number" id="pt-k" value="2" min="0" max="24" step="1">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="pt-identity">Highlight identity</label>
+                                    <select id="pt-identity">
+                                        <option value="none">Just the cell C(n, k)</option>
+                                        <option value="pascal" selected>Pascal's rule</option>
+                                        <option value="symmetry">Symmetry</option>
+                                        <option value="rowsum">Row sum = 2^n</option>
+                                        <option value="altsum">Alternating sum = 0</option>
+                                        <option value="hockey">Hockey stick</option>
+                                        <option value="absorb">Absorption k·C(n,k) = n·C(n−1,k−1)</option>
+                                        <option value="squares">Sum of squares = C(2n, n)</option>
+                                    </select>
+                                </div>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="pt-values" checked>
+                                        <span class="checkmark"></span>
+                                        Show values in cells
+                                    </label>
+                                </div>
+                                <p class="field-hint">Hover a cell for its value; click a cell to select it as (n, k).</p>
+                                <button class="btn btn-primary btn-full" id="btn-pt-run">Redraw</button>
+                            </div>
+                            <div class="sub-panel hidden" data-group="pt" data-sub="lat">
+                                <h3>Lattice paths</h3>
+                                <div class="row-inputs">
+                                    <div class="input-group">
+                                        <label for="lp-a">Right steps a</label>
+                                        <input type="number" id="lp-a" value="5" min="1" max="12" step="1">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="lp-b">Up steps b</label>
+                                        <input type="number" id="lp-b" value="4" min="1" max="12" step="1">
+                                    </div>
+                                </div>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="lp-check">
+                                        <span class="checkmark"></span>
+                                        Force paths through a checkpoint
+                                    </label>
+                                </div>
+                                <div class="row-inputs">
+                                    <div class="input-group">
+                                        <label for="lp-c">Checkpoint x</label>
+                                        <input type="number" id="lp-c" value="2" min="0" max="12" step="1">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="lp-d">Checkpoint y</label>
+                                        <input type="number" id="lp-d" value="1" min="0" max="12" step="1">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-full" id="btn-lp-random">Draw a random path</button>
+                                <button class="btn btn-secondary btn-full mt-3" id="btn-lp-clear">Clear path</button>
+                            </div>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="sub-panel" data-group="pt" data-sub="tri">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header">
+                                        <div class="canvas-legend">
+                                            <span class="legend-item"><span class="legend-color" style="background:#60a5fa"></span> summands</span>
+                                            <span class="legend-item"><span class="legend-color" style="background:#f472b6"></span> result</span>
+                                        </div>
+                                    </div>
+                                    <div class="canvas-wrapper" style="min-height:380px">
+                                        <canvas id="canvas-pascal"></canvas>
+                                    </div>
+                                </div>
+                                <div class="math-result-card card-glass">
+                                    <h4>Identity</h4>
+                                    <div id="pt-results" class="math-latex-container"></div>
+                                </div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="pt" data-sub="lat">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header">
+                                        <div class="canvas-legend">
+                                            <span class="legend-item">node label = number of paths from (0,0) to that node</span>
+                                        </div>
+                                    </div>
+                                    <div class="canvas-wrapper" style="min-height:380px">
+                                        <canvas id="canvas-lattice"></canvas>
+                                    </div>
+                                </div>
+                                <div class="math-result-card card-glass">
+                                    <h4>Counting the paths</h4>
+                                    <div id="lp-results" class="math-latex-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================ EXPAND ============================ -->
+                <section class="tab-view" id="view-expand">
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <h3>(ax + by)^n</h3>
+                            <div class="input-group">
+                                <label for="ex-preset">Preset</label>
+                                <select id="ex-preset">
+                                    <option value="">— choose —</option>
+                                    <option value="xy">(x + y)^n</option>
+                                    <option value="xmy">(x − y)^n</option>
+                                    <option value="2xm1">(2x − 1)^5</option>
+                                    <option value="3x2y">(3x + 2y)^4</option>
+                                    <option value="1px">(1 + y)^n</option>
+                                </select>
+                            </div>
+                            <div class="row-inputs">
+                                <div class="input-group">
+                                    <label for="ex-a">a (scalar on x; 0 = constant 1)</label>
+                                    <input type="number" id="ex-a" value="1" min="-9" max="9" step="1">
+                                </div>
+                                <div class="input-group">
+                                    <label for="ex-b">b (scalar on y)</label>
+                                    <input type="number" id="ex-b" value="1" min="-9" max="9" step="1">
+                                </div>
+                            </div>
+                            <div class="slider-group">
+                                <div class="slider-label"><span>Exponent n</span><span id="ex-n-val">5</span></div>
+                                <input type="range" id="ex-n" min="0" max="20" value="5" class="slider">
+                            </div>
+                            <div class="slider-group">
+                                <div class="slider-label"><span>Select term k (power of y)</span><span id="ex-k-val">2</span></div>
+                                <input type="range" id="ex-k" min="0" max="20" value="2" class="slider">
+                            </div>
+                            <div class="input-group">
+                                <label for="ex-check">Substitution check</label>
+                                <select id="ex-check">
+                                    <option value="one">x = y = 1 (coefficient sum)</option>
+                                    <option value="alt">x = 1, y = −1 (alternating sum)</option>
+                                    <option value="two">x = 1, y = 2</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-full" id="btn-ex-run">Expand</button>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="canvas-container card-glass">
+                                <div class="canvas-header">
+                                    <div class="canvas-legend">
+                                        <span class="legend-item"><span class="legend-color" style="background:#fbbf24"></span> positive</span>
+                                        <span class="legend-item"><span class="legend-color" style="background:#60a5fa"></span> negative</span>
+                                        <span class="legend-item"><span class="legend-color" style="background:#f472b6"></span> selected k</span>
+                                    </div>
+                                </div>
+                                <div class="canvas-wrapper" style="min-height:300px">
+                                    <canvas id="canvas-expand"></canvas>
+                                </div>
+                            </div>
+                            <div class="math-result-card card-glass">
+                                <h4>Expansion &amp; general term</h4>
+                                <div id="ex-results" class="math-latex-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================ MULTI ============================ -->
+                <section class="tab-view" id="view-multi">
+                    <div class="sub-tabs" data-group="mn">
+                        <button class="sub-tab-btn active" data-sub="layer">(x+y+z)^n layer</button>
+                        <button class="sub-tab-btn" data-sub="word">Word arrangements</button>
+                        <button class="sub-tab-btn" data-sub="find">Coefficient finder</button>
+                    </div>
+                    <div class="module-layout mt-4">
+                        <div class="control-panel card-glass">
+                            <div class="sub-panel" data-group="mn" data-sub="layer">
+                                <h3>Trinomial coefficients</h3>
+                                <div class="slider-group">
+                                    <div class="slider-label"><span>Degree n</span><span id="mn-n-val">4</span></div>
+                                    <input type="range" id="mn-n" min="0" max="14" value="4" class="slider">
+                                </div>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="mn-values" checked>
+                                        <span class="checkmark"></span>
+                                        Show values in cells
+                                    </label>
+                                </div>
+                                <p class="field-hint">Hover a cell to see its monomial and exponent vector [a, b, c].</p>
+                                <button class="btn btn-primary btn-full" id="btn-mn-run">Redraw</button>
+                            </div>
+                            <div class="sub-panel hidden" data-group="mn" data-sub="word">
+                                <h3>Arrangements of a word</h3>
+                                <div class="input-group">
+                                    <label for="mw-preset">Classic words</label>
+                                    <select id="mw-preset">
+                                        <option value="">— choose —</option>
+                                        <option value="MISSISSIPPI">MISSISSIPPI</option>
+                                        <option value="BANANA">BANANA</option>
+                                        <option value="BOOKKEEPER">BOOKKEEPER</option>
+                                        <option value="TENNESSEE">TENNESSEE</option>
+                                        <option value="COMMITTEE">COMMITTEE</option>
+                                        <option value="AABBCC">AABBCC</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="mw-word">Word</label>
+                                    <input type="text" id="mw-word" value="MISSISSIPPI" maxlength="20" placeholder="letters and digits, up to 20">
+                                </div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="mn" data-sub="find">
+                                <h3>Coefficient of x^a y^b z^c in (αx + βy + γz)^n</h3>
+                                <div class="input-group">
+                                    <label for="mc-n">n</label>
+                                    <input type="number" id="mc-n" value="6" min="0" max="30" step="1">
+                                </div>
+                                <div class="row-inputs three">
+                                    <div class="input-group"><label for="mc-a">a</label><input type="number" id="mc-a" value="2" min="0" max="30" step="1"></div>
+                                    <div class="input-group"><label for="mc-b">b</label><input type="number" id="mc-b" value="3" min="0" max="30" step="1"></div>
+                                    <div class="input-group"><label for="mc-c">c</label><input type="number" id="mc-c" value="1" min="0" max="30" step="1"></div>
+                                </div>
+                                <div class="row-inputs three">
+                                    <div class="input-group"><label for="mc-alpha">α</label><input type="number" id="mc-alpha" value="1" min="-9" max="9" step="1"></div>
+                                    <div class="input-group"><label for="mc-beta">β</label><input type="number" id="mc-beta" value="2" min="-9" max="9" step="1"></div>
+                                    <div class="input-group"><label for="mc-gamma">γ</label><input type="number" id="mc-gamma" value="-1" min="-9" max="9" step="1"></div>
+                                </div>
+                                <p class="field-hint">The exponents must add to n, otherwise the coefficient is 0.</p>
+                                <button class="btn btn-primary btn-full" id="btn-mc-run">Compute</button>
+                            </div>
+                        </div>
+                        <div class="visualization-panel">
+                            <div class="sub-panel" data-group="mn" data-sub="layer">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header">
+                                        <div class="canvas-legend">
+                                            <span class="legend-item">layer n of Pascal's pyramid: cell = C(n; a, b, c), colour = magnitude</span>
+                                        </div>
+                                    </div>
+                                    <div class="canvas-wrapper" style="min-height:380px">
+                                        <canvas id="canvas-multi"></canvas>
+                                    </div>
+                                </div>
+                                <div class="math-result-card card-glass">
+                                    <h4>Layer facts</h4>
+                                    <div id="mn-results" class="math-latex-container"></div>
+                                </div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="mn" data-sub="word">
+                                <div class="canvas-container card-glass">
+                                    <div class="canvas-header">
+                                        <div class="canvas-legend">
+                                            <span class="legend-item">bar height = multiplicity of each letter</span>
+                                        </div>
+                                    </div>
+                                    <div class="canvas-wrapper" style="min-height:300px">
+                                        <canvas id="canvas-word"></canvas>
+                                    </div>
+                                </div>
+                                <div class="math-result-card card-glass">
+                                    <h4>Counting</h4>
+                                    <div id="mw-results" class="math-latex-container"></div>
+                                </div>
+                            </div>
+                            <div class="sub-panel hidden" data-group="mn" data-sub="find">
+                                <div class="math-result-card card-glass">
+                                    <h4>Worked coefficient</h4>
+                                    <div id="mc-results" class="math-latex-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================ QUIZ HUB ============================ -->
+                <section class="tab-view" id="view-quiz">
+                    <div class="quiz-layout">
+                        <div class="quiz-sidebar card-glass">
+                            <h3>Practice Settings</h3>
+                            <div class="input-group mt-3">
+                                <label for="quiz-mode">Quiz Mode</label>
+                                <select id="quiz-mode"></select>
+                            </div>
+                            <div class="checkbox-group mt-3" id="quiz-topics-checkboxes">
+                                <p class="label-like">Topics to Include:</p>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="coefCompute" checked><span class="checkmark"></span>Computing C(n, k) (Ch 1)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="coefIdentity" checked><span class="checkmark"></span>Pascal's rule, symmetry, hockey stick (Ch 1)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="expandTerm" checked><span class="checkmark"></span>Terms &amp; coefficients (Ch 2)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="expandSpecific" checked><span class="checkmark"></span>Constant terms &amp; hidden powers (Ch 2)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="sumIdentities" checked><span class="checkmark"></span>Substitution identities (Ch 3)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="calcIdentities" checked><span class="checkmark"></span>Differentiate / integrate / Vandermonde (Ch 3)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="multiCoef" checked><span class="checkmark"></span>Multinomial coefficients (Ch 4)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="multiTheorem" checked><span class="checkmark"></span>Multinomial theorem (Ch 5)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="counting" checked><span class="checkmark"></span>Counting applications (Ch 6)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="proofs" checked><span class="checkmark"></span>Proof techniques (Ch 2–3)</label>
+                                <label class="checkbox-container"><input type="checkbox" class="quiz-topic-check" data-topic="traps" checked><span class="checkmark"></span>Error spotting (Ch 7)</label>
+                            </div>
+                            <button class="btn btn-primary btn-full mt-4" id="btn-quiz-start">Generate New Quiz</button>
+
+                            <div class="info-note mt-4 hidden" data-quiz-guide="setup" data-typeset>
+                                <h4><i data-lucide="help-circle"></i> How to approach these</h4>
+                                <p>1. Write the general term $\binom nk x^{n-k}y^k$ first, then solve for $k$ from the exponent you need.</p>
+                                <p>2. A sum with $\binom nk c^k$ is $(1+c)^n$; a factor $k$ means differentiate; $\frac{1}{k+1}$ means integrate; a product of two binomials means Vandermonde.</p>
+                                <p>3. For multinomials, check that the exponents add to $n$ before computing anything.</p>
+                                <p>4. Test any identity at $n = 1, 2, 3$.</p>
+                            </div>
+                        </div>
+
+                        <div class="quiz-card-panel card-glass" id="quiz-question-card">
+                            <div class="quiz-intro">
+                                <i data-lucide="graduation-cap" class="quiz-large-icon"></i>
+                                <h3>Test Your Binomial Skills</h3>
+                                <p>Select your topics on the left and click "Generate New Quiz" to start a custom practice session.</p>
+                            </div>
+                            <div class="quiz-active-state hidden">
+                                <div class="quiz-header">
+                                    <span class="quiz-question-num" id="quiz-q-num">Question 1 of 10</span>
+                                    <span class="quiz-topic-badge" id="quiz-q-topic">Topic</span>
+                                </div>
+                                <div class="quiz-question-text" id="quiz-q-text"></div>
+                                <div class="quiz-question-math" id="quiz-q-math"></div>
+                                <div class="quiz-options-list" id="quiz-options"></div>
+                                <div class="quiz-footer">
+                                    <button class="btn btn-secondary" id="btn-quiz-skip">Skip</button>
+                                    <button class="btn btn-primary" id="btn-quiz-submit" disabled>Check Answer</button>
+                                </div>
+                                <div class="quiz-explanation-box card-glass hidden" id="quiz-explanation">
+                                    <div class="explanation-status" id="quiz-result-status">
+                                        <i data-lucide="check-circle" class="status-icon icon-success"></i>
+                                        <span id="quiz-result-text">Correct!</span>
+                                    </div>
+                                    <div class="explanation-text" id="quiz-explanation-text"></div>
+                                    <button class="btn btn-primary mt-3" id="btn-quiz-next">Next Question <i data-lucide="arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- KaTeX -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- App scripts: shared engine, then content, then visualizers -->
+    <script src="lab-core.js"></script>
+    <script src="content.js"></script>
+    <script src="visualizers.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').catch(err => console.warn('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
