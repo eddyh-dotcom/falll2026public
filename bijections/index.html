@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Bijection Lab</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1c2330; --muted: #5d6673; --line: #d9dee5;
+    --a: #2f6fed; --a-soft: #dbe6fd; --ok: #1f9d55; --ok-soft: #d8f3e3;
+    --bad: #d63b3b; --bad-soft: #fbe0e0; --warn: #c98a00; --warn-soft: #fff1cc;
+    --inv: #8b5cf6; --grid: #e6e9ee; --sel: #ffd166;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10141a; --panel: #171c24; --ink: #e8ecf1; --muted: #98a2b0; --line: #2b3340;
+      --a: #6b9cff; --a-soft: #1e2d4d; --ok: #3ccf7a; --ok-soft: #12321f;
+      --bad: #ff6b6b; --bad-soft: #3d1a1a; --warn: #f0b429; --warn-soft: #3a2f0f;
+      --inv: #b79bff; --grid: #222a35; --sel: #ffd166;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10141a; --panel: #171c24; --ink: #e8ecf1; --muted: #98a2b0; --line: #2b3340;
+    --a: #6b9cff; --a-soft: #1e2d4d; --ok: #3ccf7a; --ok-soft: #12321f;
+    --bad: #ff6b6b; --bad-soft: #3d1a1a; --warn: #f0b429; --warn-soft: #3a2f0f;
+    --inv: #b79bff; --grid: #222a35; --sel: #ffd166;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         padding: 0 16px calc(24px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+  header { padding: 20px 0 8px; }
+  h1 { font-size: 1.4rem; margin: 0; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+  nav { display: flex; gap: 6px; margin: 12px 0 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  nav button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+               padding: 8px 14px; border-radius: 999px; font-size: .95rem; cursor: pointer; }
+  nav button[aria-selected="true"] { background: var(--a); border-color: var(--a); color: #fff; }
+  section[hidden] { display: none; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .row label { display: inline-flex; align-items: center; gap: 6px; font-size: .95rem; }
+  input[type=number] { width: 4.2em; font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px;
+                       background: var(--bg); color: var(--ink); }
+  select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); max-width: 100%; }
+  button.act { font: inherit; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); cursor: pointer; }
+  button.act:active { transform: translateY(1px); }
+  button.act.primary { background: var(--a); border-color: var(--a); color: #fff; }
+  svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .badge { padding: 5px 10px; border-radius: 8px; font-size: .92rem; border: 1px solid transparent; }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+  .why { margin: 10px 0 0; font-size: .95rem; color: var(--muted); }
+  .why b { color: var(--ink); }
+  .hint { font-size: .9rem; color: var(--muted); margin: 6px 0 0; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td.num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+  .range { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: .95rem; margin-top: 8px; }
+  input[type=range] { width: 100%; }
+  details summary { cursor: pointer; color: var(--muted); }
+  .defs dt { font-weight: 600; margin-top: 8px; }
+  .defs dd { margin: 2px 0 0; color: var(--muted); }
+  .fiberTitle { margin: 0 0 6px; font-size: .95rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bijection Lab</h1>
+  <p>Injective, surjective, bijective — see it on finite sets, on graphs of real functions, and in the counting formulas.</p>
+</header>
+
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-tab="finite">Finite sets</button>
+  <button role="tab" aria-selected="false" data-tab="inf">Infinite sets</button>
+  <button role="tab" aria-selected="false" data-tab="real">Real functions</button>
+  <button role="tab" aria-selected="false" data-tab="count">Counting</button>
+  <button role="tab" aria-selected="false" data-tab="defs">Definitions</button>
+</nav>
+
+<!-- ============ FINITE ============ -->
+<section id="tab-finite">
+  <div class="panel">
+    <div class="row">
+      <label>|A| = <input type="number" id="nA" min="1" max="8" value="4"></label>
+      <label>|B| = <input type="number" id="nB" min="1" max="8" value="4"></label>
+      <select id="preset">
+        <option value="">Preset…</option>
+        <option value="identity">Identity</option>
+        <option value="shift">Cyclic shift a ↦ a+1</option>
+        <option value="reverse">Reverse</option>
+        <option value="collapse">Collapse (not injective)</option>
+        <option value="miss">Miss a target (not surjective)</option>
+        <option value="random">Random function</option>
+        <option value="randperm">Random bijection</option>
+        <option value="clear">Clear all arrows</option>
+      </select>
+      <button class="act" id="btnInverse" disabled>Show f⁻¹</button>
+    </div>
+    <p class="hint">Tap an element of A, then tap where it should go in B. Tap the same A element again to remove its arrow.</p>
+  </div>
+
+  <div class="panel">
+    <svg id="finSvg" viewBox="0 0 360 300" aria-label="Arrow diagram of f from A to B"></svg>
+    <div class="badges" id="finBadges"></div>
+    <p class="why" id="finWhy"></p>
+    <p class="why" id="finPerm"></p>
+  </div>
+  <div class="panel">
+    <p class="fiberTitle">Preimage counts |f⁻¹(b)| for each b ∈ B</p>
+    <svg id="finFiber" viewBox="0 0 360 90" aria-label="Bar chart of preimage sizes"></svg>
+    <p class="hint">Injective ⇔ no bar rises above the line (every b has at most one preimage). Surjective ⇔ no bar is empty (every b has at least one). Bijective ⇔ every bar is exactly 1.</p>
+  </div>
+</section>
+
+<!-- ============ INFINITE ============ -->
+<section id="tab-inf" hidden>
+  <div class="panel">
+    <div class="row">
+      <label>f =
+        <select id="infSel"></select>
+      </label>
+    </div>
+    <div class="range"><span>show</span><input type="range" id="infK" min="6" max="20" step="1" value="10"><span class="mono" id="infKV">10</span></div>
+    <p class="hint">Only a window of each set is drawn; the pattern continues forever to the right (and left, for ℤ). Preimage counts include elements of the domain beyond the window.</p>
+  </div>
+  <div class="panel">
+    <svg id="infSvg" viewBox="0 0 360 240" aria-label="Arrow diagram between infinite sets"></svg>
+    <div class="badges" id="infBadges"></div>
+    <p class="why" id="infWhy"></p>
+  </div>
+  <div class="panel" id="infFiberPanel">
+    <p class="fiberTitle">Preimage counts |f⁻¹(b)| across the codomain window</p>
+    <svg id="infFiber" viewBox="0 0 360 90" aria-label="Bar chart of preimage sizes"></svg>
+  </div>
+  <div class="panel">
+    <p class="why"><b>Why infinite sets behave differently.</b> On a finite set, an injective map A → A is automatically surjective (pigeonhole). On ℕ that fails: n ↦ n + 1 is injective yet misses 0, and n ↦ 2n is a bijection from ℕ onto a <i>proper subset</i> of itself. Having a bijection with a proper subset is exactly what it means for a set to be infinite (Dedekind). Two sets have the same cardinality when some bijection connects them, which is why ℕ, the even numbers, ℤ and ℕ×ℕ are all “the same size”: countably infinite.</p>
+  </div>
+</section>
+
+<!-- ============ REAL ============ -->
+<section id="tab-real" hidden>
+  <div class="panel">
+    <div class="row">
+      <label>f(x) =
+        <select id="fnSel"></select>
+      </label>
+      <label>Codomain
+        <select id="codSel">
+          <option value="R">ℝ</option>
+          <option value="ge0">[0, ∞)</option>
+          <option value="gt0">(0, ∞)</option>
+          <option value="pm1">[−1, 1]</option>
+          <option value="halfpi">(−π⁄2, π⁄2)</option>
+          <option value="image">f(D) — the image itself</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="allR" checked> domain is all of ℝ</label>
+    </div>
+    <div id="domCtl">
+      <div class="range"><span>lo</span><input type="range" id="domLo" min="-4" max="4" step="0.1" value="-4"><span class="mono" id="domLoV">−4</span></div>
+      <div class="range"><span>hi</span><input type="range" id="domHi" min="-4" max="4" step="0.1" value="4"><span class="mono" id="domHiV">4</span></div>
+    </div>
+    <div class="range"><span>y =</span><input type="range" id="hline" min="-4" max="4" step="0.05" value="1"><span class="mono" id="hlineV">1</span></div>
+    <div class="row" style="margin-top:8px">
+      <label><input type="checkbox" id="showInv"> show f⁻¹ (reflect in y = x)</label>
+    </div>
+  </div>
+  <div class="panel">
+    <svg id="realSvg" viewBox="0 0 360 360" aria-label="Graph of f with horizontal line test"></svg>
+    <div class="badges" id="realBadges"></div>
+    <p class="why" id="realWhy"></p>
+  </div>
+</section>
+
+<!-- ============ COUNT ============ -->
+<section id="tab-count" hidden>
+  <div class="panel">
+    <div class="row">
+      <label>|A| = n = <input type="number" id="cn" min="0" max="20" value="3"></label>
+      <label>|B| = m = <input type="number" id="cm" min="0" max="20" value="3"></label>
+    </div>
+    <p class="hint">How many functions A → B are there, and how many of each kind?</p>
+  </div>
+  <div class="panel">
+    <table id="countTable">
+      <thead><tr><th>Kind</th><th>Formula</th><th>Value</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="why" id="countWhy"></p>
+  </div>
+</section>
+
+<!-- ============ DEFS ============ -->
+<section id="tab-defs" hidden>
+  <div class="panel">
+    <dl class="defs">
+      <dt>Function f : A → B</dt>
+      <dd>Every a ∈ A is sent to exactly one f(a) ∈ B. (Every element of A has exactly one arrow leaving it.)</dd>
+      <dt>Injective (one-to-one)</dt>
+      <dd>f(a₁) = f(a₂) ⇒ a₁ = a₂. No two arrows land on the same element of B. For real functions: every horizontal line meets the graph at most once.</dd>
+      <dt>Surjective (onto)</dt>
+      <dd>For every b ∈ B there is some a ∈ A with f(a) = b. Every element of B is hit. For real functions: every horizontal line through the codomain meets the graph at least once.</dd>
+      <dt>Bijective</dt>
+      <dd>Injective and surjective: a perfect pairing of A with B. Then f⁻¹ : B → A exists and is also a bijection. On finite sets a bijection A → B forces |A| = |B|; that is the whole point of a <b>bijective proof</b>: to show two sets have the same size, exhibit a bijection between them.</dd>
+      <dt>Pigeonhole consequences</dt>
+      <dd>If |A| &gt; |B| no function A → B is injective; if |A| &lt; |B| none is surjective. If |A| = |B| is finite, injective ⇔ surjective ⇔ bijective.</dd>
+      <dt>Preimage (fiber) of b</dt>
+      <dd>f⁻¹({b}) = { a ∈ A : f(a) = b }. Injective ⇔ every fiber has at most one element; surjective ⇔ every fiber is non-empty; bijective ⇔ every fiber has exactly one element.</dd>
+      <dt>Same cardinality</dt>
+      <dd>|A| = |B| means a bijection A → B exists. A set is <b>countably infinite</b> if it is in bijection with ℕ; a set is <b>infinite</b> (Dedekind) if it is in bijection with a proper subset of itself, e.g. ℕ → 2ℕ, n ↦ 2n. For infinite sets an injective self-map need not be surjective.</dd>
+    </dl>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(parent, x, y, s, attrs) {
+    const t = el('text', Object.assign({ x, y, 'font-size': 13, fill: 'var(--ink)', 'font-family': 'inherit' }, attrs || {}), parent);
+    t.textContent = s;
+    return t;
+  }
+
+  /* ---------- tabs ---------- */
+  document.querySelectorAll('nav [role=tab]').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('nav [role=tab]').forEach((x) => x.setAttribute('aria-selected', x === b));
+      ['finite', 'inf', 'real', 'count', 'defs'].forEach((t) => { $('#tab-' + t).hidden = t !== b.dataset.tab; });
+      try { localStorage.setItem('bij-tab', b.dataset.tab); } catch (e) {}
+    });
+  });
+  try {
+    const t = localStorage.getItem('bij-tab');
+    if (t) document.querySelector('nav [data-tab="' + t + '"]')?.click();
+  } catch (e) {}
+
+  /* ---------- preimage-count (fiber) chart, shared by the finite and infinite tabs ---------- */
+  function fiberChart(svg, labels, counts, opts) {
+    opts = opts || {};
+    svg.innerHTML = '';
+    const W = 360, H = 90, top = 10, base = 66, k = labels.length;
+    const pad = opts.ellipsis ? 14 : 4, slot = (W - 2 * pad) / k, bw = Math.min(22, slot * 0.7);
+    const cap = 3, unit = (base - top) / cap;
+    el('line', { x1: 0, y1: base, x2: W, y2: base, stroke: 'var(--line)' }, svg);
+    el('line', { x1: 0, y1: base - unit, x2: W, y2: base - unit, stroke: 'var(--ok)', 'stroke-dasharray': '4 3', 'stroke-width': 1.2 }, svg);
+    text(svg, W - 2, base - unit - 3, '1', { 'text-anchor': 'end', 'font-size': 10, fill: 'var(--ok)' });
+    labels.forEach((lab, i) => {
+      const x = pad + slot * (i + 0.5), c = counts[i];
+      const h = Math.min(c, cap) * unit;
+      const col = c === 0 ? 'var(--muted)' : c === 1 ? 'var(--ok)' : 'var(--bad)';
+      if (c === 0) el('rect', { x: x - bw / 2, y: base - 6, width: bw, height: 6, fill: 'none', stroke: col, 'stroke-dasharray': '3 2' }, svg);
+      else el('rect', { x: x - bw / 2, y: base - h, width: bw, height: h, rx: 3, fill: col, opacity: .85 }, svg);
+      if (c > 0) text(svg, x, base - h - 3, c > cap ? cap + '+' : c, { 'text-anchor': 'middle', 'font-size': 10, fill: col });
+      text(svg, x, base + 14, lab, { 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--muted)' });
+    });
+    if (opts.ellipsis) {
+      text(svg, W - 4, base + 14, '…', { 'text-anchor': 'end', 'font-size': 12, fill: 'var(--muted)' });
+      if (opts.ellipsisLeft) text(svg, 4, base + 14, '…', { 'font-size': 12, fill: 'var(--muted)' });
+    }
+  }
+
+  /* ================= FINITE SETS ================= */
+  const fin = { n: 4, m: 4, map: [0, 1, 2, 3], sel: null, inverse: false };
+  const labelA = (i) => String.fromCharCode(97 + i);       // a, b, c …
+  const labelB = (j) => String(j + 1);                      // 1, 2, 3 …
+
+  function finAnalyse() {
+    const pre = Array.from({ length: fin.m }, () => []);
+    let unassigned = 0;
+    fin.map.forEach((t, i) => { if (t == null) unassigned++; else pre[t].push(i); });
+    const total = unassigned === 0;
+    const inj = total && pre.every((p) => p.length <= 1);
+    const sur = total && pre.every((p) => p.length >= 1);
+    return { pre, unassigned, total, inj, sur, bij: inj && sur };
+  }
+
+  function finDraw() {
+    const svg = $('#finSvg');
+    svg.innerHTML = '';
+    const H = 60 + Math.max(fin.n, fin.m) * 44;
+    svg.setAttribute('viewBox', `0 0 360 ${H}`);
+    const an = finAnalyse();
+    const yA = (i) => 50 + (i + 0.5) * ((H - 60) / fin.n);
+    const yB = (j) => 50 + (j + 0.5) * ((H - 60) / fin.m);
+    const xA = 90, xB = 270, r = 14;
+
+    // marker for arrows
+    const defs = el('defs', {}, svg);
+    for (const [id, col] of [['mA', 'var(--a)'], ['mR', 'var(--bad)'], ['mI', 'var(--inv)']]) {
+      const mk = el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M0,0 L10,5 L0,10 z', fill: col }, mk);
+    }
+
+    // set bubbles
+    el('rect', { x: xA - 40, y: 34, width: 80, height: H - 44, rx: 40, fill: 'none', stroke: 'var(--line)' }, svg);
+    el('rect', { x: xB - 40, y: 34, width: 80, height: H - 44, rx: 40, fill: 'none', stroke: 'var(--line)' }, svg);
+    text(svg, xA, 22, 'A', { 'text-anchor': 'middle', 'font-weight': 700 });
+    text(svg, xB, 22, 'B', { 'text-anchor': 'middle', 'font-weight': 700 });
+    text(svg, 180, 22, fin.inverse && an.bij ? 'f⁻¹ : B → A' : 'f : A → B', { 'text-anchor': 'middle', fill: 'var(--muted)' });
+
+    // arrows
+    fin.map.forEach((t, i) => {
+      if (t == null) return;
+      const clash = an.pre[t].length > 1;
+      const col = fin.inverse && an.bij ? 'var(--inv)' : clash ? 'var(--bad)' : 'var(--a)';
+      const mk = fin.inverse && an.bij ? 'mI' : clash ? 'mR' : 'mA';
+      const x1 = xA + r + 2, x2 = xB - r - 2, y1 = yA(i), y2 = yB(t);
+      const attrs = { stroke: col, 'stroke-width': 2.2, fill: 'none', 'marker-end': `url(#${mk})` };
+      if (fin.inverse && an.bij) el('line', Object.assign({ x1: x2, y1: y2, x2: x1, y2: y1 }, attrs), svg);
+      else el('line', Object.assign({ x1, y1, x2, y2 }, attrs), svg);
+    });
+
+    // A nodes
+    for (let i = 0; i < fin.n; i++) {
+      const g = el('g', { cursor: 'pointer', 'data-a': i }, svg);
+      const selected = fin.sel === i;
+      el('circle', { cx: xA, cy: yA(i), r, fill: selected ? 'var(--sel)' : fin.map[i] == null ? 'var(--warn-soft)' : 'var(--a-soft)',
+                     stroke: selected ? 'var(--warn)' : fin.map[i] == null ? 'var(--warn)' : 'var(--a)', 'stroke-width': 2,
+                     'stroke-dasharray': fin.map[i] == null ? '3 3' : 'none' }, g);
+      text(g, xA, yA(i) + 5, labelA(i), { 'text-anchor': 'middle', fill: selected ? '#1c2330' : 'var(--ink)' });
+      g.addEventListener('click', () => {
+        if (fin.sel === i) { fin.map[i] = null; fin.sel = null; }   // second tap clears
+        else fin.sel = i;
+        finDraw();
+      });
+    }
+    // B nodes
+    for (let j = 0; j < fin.m; j++) {
+      const g = el('g', { cursor: 'pointer', 'data-b': j }, svg);
+      const k = an.pre[j].length;
+      el('circle', { cx: xB, cy: yB(j), r, fill: k > 1 ? 'var(--bad-soft)' : k === 0 ? 'none' : 'var(--ok-soft)',
+                     stroke: k > 1 ? 'var(--bad)' : k === 0 ? 'var(--muted)' : 'var(--ok)', 'stroke-width': 2,
+                     'stroke-dasharray': k === 0 ? '3 3' : 'none' }, g);
+      text(g, xB, yB(j) + 5, labelB(j), { 'text-anchor': 'middle' });
+      if (k > 1) text(g, xB + r + 8, yB(j) + 5, '×' + k, { fill: 'var(--bad)', 'font-size': 12 });
+      if (k === 0) text(g, xB + r + 8, yB(j) + 5, 'unhit', { fill: 'var(--muted)', 'font-size': 11 });
+      g.addEventListener('click', () => {
+        if (fin.sel != null) { fin.map[fin.sel] = j; fin.sel = null; finDraw(); }
+      });
+    }
+
+    // badges & explanation
+    const badges = $('#finBadges');
+    badges.innerHTML = '';
+    const add = (cls, s) => { const b = document.createElement('span'); b.className = 'badge ' + cls; b.textContent = s; badges.appendChild(b); };
+    if (!an.total) add('warn', `not a function yet — ${an.unassigned} element${an.unassigned > 1 ? 's' : ''} of A unassigned`);
+    else {
+      add(an.inj ? 'ok' : 'bad', an.inj ? 'injective ✓' : 'not injective');
+      add(an.sur ? 'ok' : 'bad', an.sur ? 'surjective ✓' : 'not surjective');
+      add(an.bij ? 'ok' : 'bad', an.bij ? 'bijective ✓' : 'not bijective');
+    }
+    const why = [];
+    if (an.total) {
+      an.pre.forEach((p, j) => {
+        if (p.length > 1) why.push(`<b>${p.map(labelA).join(', ')}</b> all map to <b>${labelB(j)}</b>, so f is not injective.`);
+      });
+      const unhit = an.pre.map((p, j) => p.length === 0 ? labelB(j) : null).filter((x) => x != null);
+      if (unhit.length) why.push(`Nothing maps to <b>${unhit.join(', ')}</b>, so f is not surjective.`);
+      if (fin.n > fin.m) why.push(`|A| = ${fin.n} > ${fin.m} = |B|: by pigeonhole no function A → B can be injective.`);
+      if (fin.n < fin.m) why.push(`|A| = ${fin.n} < ${fin.m} = |B|: no function A → B can be surjective.`);
+      if (an.bij) why.push(`Every element of B is hit exactly once, so f pairs A with B and f⁻¹ exists.`);
+    }
+    $('#finWhy').innerHTML = why.join(' ');
+    $('#btnInverse').disabled = !an.bij;
+    $('#btnInverse').textContent = fin.inverse ? 'Show f' : 'Show f⁻¹';
+    if (!an.bij) fin.inverse = false;
+
+    // permutation notation when A and B have the same size and f is a bijection
+    const perm = $('#finPerm');
+    if (an.bij && fin.n === fin.m) {
+      const seen = new Array(fin.n).fill(false), cycles = [];
+      for (let i = 0; i < fin.n; i++) {
+        if (seen[i]) continue;
+        const c = []; let k = i;
+        while (!seen[k]) { seen[k] = true; c.push(k); k = fin.map[k]; }
+        if (c.length > 1) cycles.push('(' + c.map((x) => x + 1).join(' ') + ')');
+      }
+      const twoLine = `(${Array.from({ length: fin.n }, (_, i) => i + 1).join(' ')}) ↦ (${fin.map.map((t) => t + 1).join(' ')})`;
+      perm.innerHTML = `Identifying A and B with {1,…,${fin.n}}, this is the permutation <span class="mono">${twoLine}</span>` +
+        `, cycle notation <span class="mono">${cycles.length ? cycles.join('') : 'identity'}</span>.`;
+    } else perm.innerHTML = '';
+
+    fiberChart($('#finFiber'), an.pre.map((_, j) => labelB(j)), an.pre.map((p) => p.length));
+  }
+
+  function finResize() {
+    fin.n = Math.min(8, Math.max(1, +$('#nA').value || 1));
+    fin.m = Math.min(8, Math.max(1, +$('#nB').value || 1));
+    $('#nA').value = fin.n; $('#nB').value = fin.m;
+    fin.map = Array.from({ length: fin.n }, (_, i) => (fin.map[i] != null && fin.map[i] < fin.m) ? fin.map[i] : null);
+    fin.sel = null;
+    finDraw();
+  }
+  $('#nA').addEventListener('change', finResize);
+  $('#nB').addEventListener('change', finResize);
+  $('#btnInverse').addEventListener('click', () => { fin.inverse = !fin.inverse; finDraw(); });
+  $('#preset').addEventListener('change', (e) => {
+    const p = e.target.value; e.target.value = '';
+    const n = fin.n, m = fin.m;
+    const range = (k) => Array.from({ length: k }, (_, i) => i);
+    const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    switch (p) {
+      case 'identity': fin.map = range(n).map((i) => Math.min(i, m - 1)); break;
+      case 'shift': fin.map = range(n).map((i) => (i + 1) % m); break;
+      case 'reverse': fin.map = range(n).map((i) => Math.max(0, m - 1 - i)); break;
+      case 'collapse': fin.map = range(n).map((i) => Math.min(Math.floor(i / 2), m - 1)); break;
+      case 'miss': fin.map = range(n).map((i) => i % Math.max(1, m - 1)); break;
+      case 'random': fin.map = range(n).map(() => Math.floor(Math.random() * m)); break;
+      case 'randperm': {
+        if (n !== m) { $('#nB').value = n; fin.m = n; }
+        fin.map = shuffle(range(n)); break;
+      }
+      case 'clear': fin.map = range(n).map(() => null); break;
+      default: return;
+    }
+    fin.sel = null; fin.inverse = false; finDraw();
+  });
+  finDraw();
+
+  /* ================= INFINITE SETS ================= */
+  // Sets are drawn as windows: N = 0,1,2,…  E = 0,2,4,…  Z = …,−2,−1,0,1,2,…
+  const SETS = {
+    N: { s: 'ℕ', window: (K) => Array.from({ length: K }, (_, i) => i), left: false },
+    E: { s: '2ℕ (even numbers)', window: (K) => Array.from({ length: K }, (_, i) => 2 * i), left: false },
+    Z: { s: 'ℤ', window: (K) => { const h = Math.floor(K / 2); return Array.from({ length: 2 * h + 1 }, (_, i) => i - h); }, left: true },
+  };
+  const INF = [
+    { id: 'succ', label: 'ℕ → ℕ,  n ↦ n + 1', dom: 'N', cod: 'N', f: (n) => n + 1, inj: true, sur: false,
+      why: 'Different inputs give different outputs, so f is injective. But nothing maps to 0, so f is not surjective. This is Hilbert’s hotel: every guest moves one room up and room 0 becomes free — impossible in a finite hotel.' },
+    { id: 'half', label: 'ℕ → ℕ,  n ↦ ⌊n/2⌋', dom: 'N', cod: 'N', f: (n) => Math.floor(n / 2), inj: false, sur: true,
+      why: 'Every b is hit by both 2b and 2b + 1, so f is surjective but every fiber has two elements: not injective.' },
+    { id: 'dbl', label: 'ℕ → ℕ,  n ↦ 2n', dom: 'N', cod: 'N', f: (n) => 2 * n, inj: true, sur: false,
+      why: 'Injective (2n = 2m ⇒ n = m) but the odd numbers are never hit. Change the codomain to the even numbers and the same rule becomes a bijection.' },
+    { id: 'dblE', label: 'ℕ → 2ℕ,  n ↦ 2n', dom: 'N', cod: 'E', f: (n) => 2 * n, inj: true, sur: true,
+      why: 'Same rule, codomain shrunk to the image: now every even number 2b is hit exactly once, by b. ℕ is in bijection with a proper subset of itself — the hallmark of an infinite set.' },
+    { id: 'sq', label: 'ℕ → ℕ,  n ↦ n²', dom: 'N', cod: 'N', f: (n) => n * n, inj: true, sur: false,
+      why: 'Injective on ℕ (squares of distinct naturals differ) but the non-squares 2, 3, 5, 6, … are missed, so not surjective. Note how the arrows run off the window: the image thins out.' },
+    { id: 'zig', label: 'ℕ → ℤ,  n ↦ (−1)ⁿ ⌈n/2⌉', dom: 'N', cod: 'Z', f: (n) => (n % 2 ? -1 : 1) * Math.ceil(n / 2), inj: true, sur: true,
+      why: 'The zig-zag 0, −1, 1, −2, 2, −3, 3, … visits every integer exactly once, so f is a bijection: ℤ is countable, the same size as ℕ even though ℕ ⊊ ℤ.' },
+    { id: 'abs', label: 'ℤ → ℕ,  n ↦ |n|', dom: 'Z', cod: 'N', f: Math.abs, inj: false, sur: true,
+      why: 'Every natural b is hit by b and −b, so f is surjective, but for b ≠ 0 the fiber has two elements: not injective.' },
+    { id: 'shiftZ', label: 'ℤ → ℤ,  n ↦ n + 1', dom: 'Z', cod: 'Z', f: (n) => n + 1, inj: true, sur: true,
+      why: 'On ℤ the shift is a bijection: every integer b is hit exactly once, by b − 1. Compare with the same rule on ℕ, where 0 has no preimage.' },
+    { id: 'pair', label: 'ℕ → ℕ×ℕ  (Cantor pairing)', grid: true, inj: true, sur: true,
+      why: 'Number the grid diagonal by diagonal: (0,0) ↦ 0, then (0,1), (1,0), then (0,2), (1,1), (2,0), … Every pair gets exactly one number and every number is used, so ℕ×ℕ is in bijection with ℕ. (The inverse is the pairing function π(i, j) = (i + j)(i + j + 1)/2 + j.)' },
+  ];
+  INF.forEach((f) => { const o = document.createElement('option'); o.value = f.id; o.textContent = f.label; $('#infSel').appendChild(o); });
+
+  function infDraw() {
+    const fn = INF.find((f) => f.id === $('#infSel').value);
+    const K = +$('#infK').value; $('#infKV').textContent = K;
+    const svg = $('#infSvg'); svg.innerHTML = '';
+    const badges = $('#infBadges'); badges.innerHTML = '';
+    const add = (cls, s) => { const b = document.createElement('span'); b.className = 'badge ' + cls; b.textContent = s; badges.appendChild(b); };
+    add(fn.inj ? 'ok' : 'bad', fn.inj ? 'injective ✓' : 'not injective');
+    add(fn.sur ? 'ok' : 'bad', fn.sur ? 'surjective ✓' : 'not surjective');
+    add(fn.inj && fn.sur ? 'ok' : 'bad', fn.inj && fn.sur ? 'bijective ✓' : 'not bijective');
+    $('#infWhy').innerHTML = fn.why;
+
+    if (fn.grid) {                                   // Cantor pairing: ℕ×ℕ grid numbered along diagonals
+      const G = Math.min(8, Math.max(5, Math.round(K / 2)));
+      const cell = 300 / G, ox = 44, oy = 16;
+      svg.setAttribute('viewBox', `0 0 360 ${oy + G * cell + 34}`);
+      $('#infFiberPanel').hidden = true;
+      text(svg, ox + G * cell / 2, oy + G * cell + 26, 'i  →', { 'text-anchor': 'middle', fill: 'var(--muted)' });
+      text(svg, 12, oy + G * cell / 2, 'j ↑', { fill: 'var(--muted)' });
+      const pos = (i, j) => [ox + (i + 0.5) * cell, oy + (G - 1 - j + 0.5) * cell];
+      for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) {
+        const [x, y] = pos(i, j), n = (i + j) * (i + j + 1) / 2 + j, onScreen = i + j < G;
+        el('rect', { x: x - cell / 2 + 1, y: y - cell / 2 + 1, width: cell - 2, height: cell - 2, rx: 4, fill: onScreen ? 'var(--a-soft)' : 'none', stroke: 'var(--line)' }, svg);
+        text(svg, x, y + 4, n, { 'text-anchor': 'middle', 'font-size': cell > 45 ? 12 : 10, fill: onScreen ? 'var(--ink)' : 'var(--muted)' });
+        if (i === 0) text(svg, ox - 6, y + 4, j, { 'text-anchor': 'end', 'font-size': 10, fill: 'var(--muted)' });
+        if (j === 0) text(svg, x, oy + G * cell + 12, i, { 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--muted)' });
+      }
+      // path through the cells in order n = 0, 1, 2, … (diagonals i + j = d, j from 0 up)
+      let prev = null;
+      for (let s = 0; s < G; s++) {
+        const [xa, ya] = pos(s, 0), [xb, yb] = pos(0, s);
+        if (prev) el('line', { x1: prev[0], y1: prev[1], x2: xa, y2: ya, stroke: 'var(--a)', 'stroke-width': 1.2, 'stroke-dasharray': '3 4', opacity: .5 }, svg);
+        el('line', { x1: xa, y1: ya, x2: xb, y2: yb, stroke: 'var(--a)', 'stroke-width': 2.2, opacity: .8 }, svg);
+        prev = [xb, yb];
+      }
+      return;
+    }
+
+    $('#infFiberPanel').hidden = false;
+    const D = SETS[fn.dom], C = SETS[fn.cod];
+    const dw = D.window(K), cw = C.window(K);
+    const H = 240, yA = 60, yB = 190, pad = 22;
+    svg.setAttribute('viewBox', `0 0 360 ${H}`);
+    const xOf = (arr, i) => pad + (360 - 2 * pad) * (arr.length === 1 ? 0.5 : i / (arr.length - 1));
+    const r = Math.max(7, Math.min(13, 150 / Math.max(dw.length, cw.length)));
+    const fs = r >= 11 ? 12 : 9;
+    const cIndex = new Map(cw.map((v, i) => [v, i]));
+
+    // preimage counts over an extended domain so off-window inputs are counted
+    const extDom = fn.dom === 'Z' ? Array.from({ length: 801 }, (_, i) => i - 400) : Array.from({ length: 801 }, (_, i) => i);
+    const counts = cw.map(() => 0);
+    extDom.forEach((n) => { const t = fn.f(n); if (cIndex.has(t)) counts[cIndex.get(t)]++; });
+
+    const defs = el('defs', {}, svg);
+    for (const [id, col] of [['imA', 'var(--a)'], ['imR', 'var(--bad)']]) {
+      const mk = el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' }, defs);
+      el('path', { d: 'M0,0 L10,5 L0,10 z', fill: col }, mk);
+    }
+    text(svg, 6, yA - r - 12, D.s, { 'font-weight': 700 });
+    text(svg, 6, yB + r + 20, C.s, { 'font-weight': 700 });
+    text(svg, 180, 16, fn.label, { 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 12 });
+    const ell = (y) => { text(svg, 354, y + 5, '…', { 'text-anchor': 'end', 'font-size': 14, fill: 'var(--muted)' }); };
+    ell(yA); ell(yB);
+    if (D.left) text(svg, 4, yA + 5, '…', { 'font-size': 14, fill: 'var(--muted)' });
+    if (C.left) text(svg, 4, yB + 5, '…', { 'font-size': 14, fill: 'var(--muted)' });
+
+    // arrows
+    dw.forEach((n, i) => {
+      const t = fn.f(n), x1 = xOf(dw, i);
+      if (cIndex.has(t)) {
+        const j = cIndex.get(t), x2 = xOf(cw, j), clash = counts[j] > 1;
+        el('line', { x1, y1: yA + r + 2, x2, y2: yB - r - 3, stroke: clash ? 'var(--bad)' : 'var(--a)', 'stroke-width': 1.6,
+                     'marker-end': `url(#${clash ? 'imR' : 'imA'})`, opacity: .9 }, svg);
+      } else {   // target lies outside the drawn window: run the arrow off the edge
+        const right = t > cw[cw.length - 1];
+        const x2 = right ? 352 : 8;
+        el('line', { x1, y1: yA + r + 2, x2, y2: yB - r - 3, stroke: 'var(--a)', 'stroke-width': 1.4, 'stroke-dasharray': '4 3', opacity: .45 }, svg);
+      }
+    });
+    // domain nodes
+    dw.forEach((n, i) => {
+      const x = xOf(dw, i);
+      el('circle', { cx: x, cy: yA, r, fill: 'var(--a-soft)', stroke: 'var(--a)', 'stroke-width': 1.5 }, svg);
+      text(svg, x, yA + fs / 2 - 1, n, { 'text-anchor': 'middle', 'font-size': fs });
+    });
+    // codomain nodes coloured by fiber size
+    cw.forEach((b, j) => {
+      const x = xOf(cw, j), k = counts[j];
+      el('circle', { cx: x, cy: yB, r, fill: k > 1 ? 'var(--bad-soft)' : k === 0 ? 'none' : 'var(--ok-soft)',
+                     stroke: k > 1 ? 'var(--bad)' : k === 0 ? 'var(--muted)' : 'var(--ok)', 'stroke-width': 1.5,
+                     'stroke-dasharray': k === 0 ? '3 2' : 'none' }, svg);
+      text(svg, x, yB + fs / 2 - 1, b, { 'text-anchor': 'middle', 'font-size': fs });
+    });
+    fiberChart($('#infFiber'), cw.map(String), counts, { ellipsis: true, ellipsisLeft: C.left });
+  }
+  $('#infSel').addEventListener('change', infDraw);
+  $('#infK').addEventListener('input', infDraw);
+  infDraw();
+
+  /* ================= REAL FUNCTIONS ================= */
+  // Each entry: f, label, and its range over all of ℝ as an interval {lo, hi, loOpen, hiOpen}.
+  const FNS = [
+    { id: 'lin', label: '2x + 1', f: (x) => 2 * x + 1, inv: (y) => (y - 1) / 2, rangeR: { lo: -Infinity, hi: Infinity } },
+    { id: 'sq', label: 'x²', f: (x) => x * x, rangeR: { lo: 0, hi: Infinity } },
+    { id: 'cube', label: 'x³', f: (x) => x * x * x, rangeR: { lo: -Infinity, hi: Infinity } },
+    { id: 'cubex', label: 'x³ − x', f: (x) => x * x * x - x, rangeR: { lo: -Infinity, hi: Infinity } },
+    { id: 'exp', label: 'eˣ', f: Math.exp, rangeR: { lo: 0, hi: Infinity, loOpen: true } },
+    { id: 'sin', label: 'sin x', f: Math.sin, rangeR: { lo: -1, hi: 1 } },
+    { id: 'abs', label: '|x|', f: Math.abs, rangeR: { lo: 0, hi: Infinity } },
+    { id: 'atan', label: 'arctan x', f: Math.atan, rangeR: { lo: -Math.PI / 2, hi: Math.PI / 2, loOpen: true, hiOpen: true } },
+    { id: 'tanh', label: 'tanh x', f: Math.tanh, rangeR: { lo: -1, hi: 1, loOpen: true, hiOpen: true } },
+  ];
+  const CODS = {
+    R: { lo: -Infinity, hi: Infinity, s: 'ℝ' },
+    ge0: { lo: 0, hi: Infinity, s: '[0, ∞)' },
+    gt0: { lo: 0, hi: Infinity, loOpen: true, s: '(0, ∞)' },
+    pm1: { lo: -1, hi: 1, s: '[−1, 1]' },
+    halfpi: { lo: -Math.PI / 2, hi: Math.PI / 2, loOpen: true, hiOpen: true, s: '(−π⁄2, π⁄2)' },
+  };
+  FNS.forEach((f) => { const o = document.createElement('option'); o.value = f.id; o.textContent = f.label; $('#fnSel').appendChild(o); });
+  $('#fnSel').value = 'sq';
+
+  const fmt = (v) => {
+    if (v === Infinity) return '∞'; if (v === -Infinity) return '−∞';
+    const s = (Math.round(v * 100) / 100).toString(); return s.replace('-', '−');
+  };
+  const ivStr = (iv) => (iv.loOpen || iv.lo === -Infinity ? '(' : '[') + fmt(iv.lo) + ', ' + fmt(iv.hi) + (iv.hiOpen || iv.hi === Infinity ? ')' : ']');
+  const near = (x, y) => x === y || Math.abs(x - y) < 1e-6;   // x === y handles ±∞
+  const ivEq = (a, b) => near(a.lo, b.lo) && near(a.hi, b.hi) && !!a.loOpen === !!b.loOpen && !!a.hiOpen === !!b.hiOpen;
+  const ivSub = (a, b) => // a ⊆ b ?
+    (near(a.lo, b.lo) ? (!b.loOpen || !!a.loOpen) : a.lo > b.lo) &&
+    (near(a.hi, b.hi) ? (!b.hiOpen || !!a.hiOpen) : a.hi < b.hi);
+
+  function realState() {
+    const fn = FNS.find((f) => f.id === $('#fnSel').value);
+    const allR = $('#allR').checked;
+    let lo = +$('#domLo').value, hi = +$('#domHi').value;
+    if (lo > hi) [lo, hi] = [hi, lo];
+    const dom = allR ? { lo: -Infinity, hi: Infinity } : { lo, hi };
+    // sample on the domain (a wide window stands in for ℝ)
+    const slo = allR ? -12 : lo, shi = allR ? 12 : hi, N = 1200;
+    const xs = Array.from({ length: N + 1 }, (_, i) => slo + (shi - slo) * i / N);
+    const ys = xs.map(fn.f);
+    // injective on the domain ⇔ strictly monotone (all our f are continuous)
+    let up = false, down = false;
+    for (let i = 1; i < ys.length; i++) { if (ys[i] > ys[i - 1] + 1e-12) up = true; else if (ys[i] < ys[i - 1] - 1e-12) down = true; }
+    const inj = !(up && down);
+    // image of the domain
+    let image;
+    if (allR) image = fn.rangeR;
+    else image = { lo: Math.min(...ys), hi: Math.max(...ys) };
+    const codKey = $('#codSel').value;
+    const cod = codKey === 'image' ? Object.assign({ s: 'f(D) = ' + ivStr(image) }, image) : CODS[codKey];
+    const validCod = ivSub(image, cod);       // f really lands in the chosen codomain?
+    const sur = validCod && ivEq(image, cod);
+    return { fn, allR, lo, hi, dom, xs, ys, inj, image, cod, codKey, validCod, sur, bij: validCod && inj && sur };
+  }
+
+  function realDraw() {
+    const st = realState();
+    const svg = $('#realSvg'); svg.innerHTML = '';
+    const W = 360, H = 360, R = 4;               // plot window [-4,4]²
+    const X = (x) => (x + R) / (2 * R) * W, Y = (y) => H - (y + R) / (2 * R) * H;
+    // grid
+    for (let k = -R; k <= R; k++) {
+      el('line', { x1: X(k), y1: 0, x2: X(k), y2: H, stroke: k === 0 ? 'var(--muted)' : 'var(--grid)', 'stroke-width': k === 0 ? 1.2 : 1 }, svg);
+      el('line', { x1: 0, y1: Y(k), x2: W, y2: Y(k), stroke: k === 0 ? 'var(--muted)' : 'var(--grid)', 'stroke-width': k === 0 ? 1.2 : 1 }, svg);
+      if (k !== 0) { text(svg, X(k) + 2, Y(0) - 3, k, { 'font-size': 10, fill: 'var(--muted)' }); text(svg, X(0) + 3, Y(k) - 2, k, { 'font-size': 10, fill: 'var(--muted)' }); }
+    }
+    // excluded parts of the domain
+    if (!st.allR) {
+      el('rect', { x: 0, y: 0, width: X(st.lo), height: H, fill: 'var(--muted)', opacity: .12 }, svg);
+      el('rect', { x: X(st.hi), y: 0, width: W - X(st.hi), height: H, fill: 'var(--muted)', opacity: .12 }, svg);
+    }
+    // codomain band on the y-axis (left edge)
+    if (st.codKey !== 'R') {
+      const y1 = Y(Math.min(R, st.cod.hi)), y2 = Y(Math.max(-R, st.cod.lo));
+      el('rect', { x: 0, y: y1, width: 6, height: Math.max(0, y2 - y1), fill: 'var(--ok)', opacity: .6 }, svg);
+    }
+    // graph (clipped to the window)
+    const path = (fx, stroke, dash) => {
+      let d = '', pen = false;
+      const xs = Array.from({ length: 721 }, (_, i) => -R + 2 * R * i / 720);
+      for (const x of xs) {
+        const inDom = st.allR || (x >= st.lo - 1e-9 && x <= st.hi + 1e-9);
+        const y = fx(x);
+        if (!inDom || !isFinite(y) || Math.abs(y) > R + 1) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + X(x).toFixed(1) + ',' + Y(y).toFixed(1); pen = true;
+      }
+      el('path', { d, fill: 'none', stroke, 'stroke-width': 2.4, 'stroke-dasharray': dash || 'none', 'stroke-linejoin': 'round' }, svg);
+    };
+    path(st.fn.f, 'var(--a)');
+    // inverse: the reflected graph, drawn parametrically (x = f(t), y = t)
+    if ($('#showInv').checked) {
+      el('line', { x1: X(-R), y1: Y(-R), x2: X(R), y2: Y(R), stroke: 'var(--muted)', 'stroke-dasharray': '4 4' }, svg);
+      let d = '', pen = false;
+      const lo = st.allR ? -12 : st.lo, hi = st.allR ? 12 : st.hi;
+      for (let i = 0; i <= 1400; i++) {
+        const t = lo + (hi - lo) * i / 1400, fx = st.fn.f(t);
+        if (Math.abs(fx) > R + 1 || Math.abs(t) > R + 1) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + X(fx).toFixed(1) + ',' + Y(t).toFixed(1); pen = true;
+      }
+      el('path', { d, fill: 'none', stroke: 'var(--inv)', 'stroke-width': 2.2, 'stroke-dasharray': st.bij ? 'none' : '5 4' }, svg);
+      text(svg, W - 6, 14, st.bij ? 'f⁻¹' : 'reflection (not a function unless f is bijective)', { 'text-anchor': 'end', 'font-size': 11, fill: 'var(--inv)' });
+    }
+    // horizontal line test
+    const c = +$('#hline').value;
+    const hits = [];
+    for (let i = 1; i < st.ys.length; i++) {
+      const a = st.ys[i - 1] - c, b = st.ys[i] - c;
+      if (a === 0) hits.push(st.xs[i - 1]);
+      else if (a * b < 0) hits.push(st.xs[i - 1] + (st.xs[i] - st.xs[i - 1]) * a / (a - b));
+    }
+    if (st.ys.length && st.ys[st.ys.length - 1] - c === 0) hits.push(st.xs[st.xs.length - 1]);
+    // merge near-duplicates
+    const H2 = hits.filter((x, i) => i === 0 || Math.abs(x - hits[i - 1]) > 1e-3);
+    const inCod = st.cod.lo < c + 1e-9 && c < st.cod.hi + 1e-9 && !(st.cod.loOpen && Math.abs(c - st.cod.lo) < 1e-9) && !(st.cod.hiOpen && Math.abs(c - st.cod.hi) < 1e-9);
+    const lineCol = H2.length > 1 ? 'var(--bad)' : (H2.length === 0 && inCod) ? 'var(--bad)' : 'var(--ok)';
+    el('line', { x1: 0, y1: Y(c), x2: W, y2: Y(c), stroke: lineCol, 'stroke-width': 1.8, 'stroke-dasharray': '6 4' }, svg);
+    H2.forEach((x) => { if (Math.abs(x) <= R) el('circle', { cx: X(x), cy: Y(c), r: 4.5, fill: lineCol, stroke: 'var(--panel)', 'stroke-width': 1.5 }, svg); });
+    const offscreen = H2.filter((x) => Math.abs(x) > R).length;
+    text(svg, 8, Y(c) - 6, `y = ${fmt(c)}: ${H2.length} hit${H2.length === 1 ? '' : 's'}${offscreen ? ` (${offscreen} off-screen)` : ''}${inCod ? '' : ' — outside codomain'}`,
+         { 'font-size': 11, fill: lineCol, 'font-weight': 600 });
+
+    // badges
+    const badges = $('#realBadges'); badges.innerHTML = '';
+    const add = (cls, s) => { const b = document.createElement('span'); b.className = 'badge ' + cls; b.textContent = s; badges.appendChild(b); };
+    const domS = st.allR ? 'ℝ' : ivStr({ lo: st.lo, hi: st.hi });
+    if (!st.validCod) add('warn', `f(D) = ${ivStr(st.image)} ⊄ ${st.cod.s}: f isn't a function into this codomain`);
+    else {
+      add(st.inj ? 'ok' : 'bad', st.inj ? 'injective ✓' : 'not injective');
+      add(st.sur ? 'ok' : 'bad', st.sur ? 'surjective ✓' : 'not surjective');
+      add(st.bij ? 'ok' : 'bad', st.bij ? 'bijective ✓' : 'not bijective');
+    }
+    const why = [`<b>f : ${domS} → ${st.cod.s}</b>, f(x) = ${st.fn.label}. Image f(D) = ${ivStr(st.image)}.`];
+    if (st.validCod) {
+      why.push(st.inj ? 'f is strictly monotone on D, so no horizontal line meets the graph twice.'
+                      : 'f turns around on D, so some horizontal line meets the graph twice (drag y to find one).');
+      why.push(st.sur ? 'The image fills the whole codomain, so every horizontal line through the codomain meets the graph.'
+                      : `The image ${ivStr(st.image)} is smaller than the codomain ${st.cod.s}, so some horizontal line through the codomain misses the graph.`);
+      if (!st.bij) {
+        const tips = [];
+        if (!st.inj) tips.push('shrink the domain until f is monotone');
+        if (!st.sur) tips.push('choose the codomain to be exactly the image');
+        why.push(`To make it bijective: ${tips.join(', and ')}.`);
+      } else why.push('f⁻¹ exists — tick “show f⁻¹” to see its graph, the reflection of f in the line y = x.');
+    }
+    $('#realWhy').innerHTML = why.join(' ');
+    $('#domLoV').textContent = fmt(st.lo); $('#domHiV').textContent = fmt(st.hi); $('#hlineV').textContent = fmt(c);
+    $('#domCtl').style.opacity = st.allR ? .4 : 1;
+    $('#domCtl').querySelectorAll('input').forEach((i) => { i.disabled = st.allR; });
+  }
+  ['#fnSel', '#codSel', '#allR', '#domLo', '#domHi', '#hline', '#showInv'].forEach((s) => {
+    $(s).addEventListener('input', realDraw); $(s).addEventListener('change', realDraw);
+  });
+  realDraw();
+
+  /* ================= COUNTING ================= */
+  const big = (x) => BigInt(x);
+  const fact = (n) => { let r = 1n; for (let i = 2n; i <= big(n); i++) r *= i; return r; };
+  const choose = (n, k) => (k < 0 || k > n) ? 0n : fact(n) / (fact(k) * fact(n - k));
+  const pow = (b, e) => big(b) ** big(e);
+  const pretty = (b) => b.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  function countDraw() {
+    const n = Math.min(20, Math.max(0, +$('#cn').value || 0)), m = Math.min(20, Math.max(0, +$('#cm').value || 0));
+    $('#cn').value = n; $('#cm').value = m;
+    const functions = (n === 0) ? 1n : pow(m, n);                 // exactly one function from ∅
+    const inj = n > m ? 0n : fact(m) / fact(m - n);
+    let sur = 0n;
+    if (n >= m) for (let k = 0; k <= m; k++) sur += (k % 2 ? -1n : 1n) * choose(m, k) * ((m - k === 0 && n === 0) ? 1n : pow(m - k, n));
+    const bij = n === m ? fact(n) : 0n;
+    const rows = [
+      ['All functions', `m<sup>n</sup> = ${m}<sup>${n}</sup>`, functions],
+      ['Injective', n > m ? 'none (n > m, pigeonhole)' : `m(m−1)⋯(m−n+1) = ${m}!/${m - n}!`, inj],
+      ['Surjective', n < m ? 'none (n < m)' : `Σ<sub>k</sub> (−1)<sup>k</sup> C(m,k)(m−k)<sup>n</sup> = m!·S(n,m)`, sur],
+      ['Bijective', n !== m ? 'none (n ≠ m)' : `n! = ${n}!`, bij],
+    ];
+    $('#countTable tbody').innerHTML = rows.map(([k, f, v]) => `<tr><td>${k}</td><td>${f}</td><td class="num">${pretty(v)}</td></tr>`).join('');
+    const why = [];
+    if (n === m) why.push(`With |A| = |B| = ${n}, injective = surjective = bijective, and all three counts agree: ${pretty(bij)}.`);
+    if (n > m) why.push('Since n > m, injections are impossible (pigeonhole), but surjections exist.');
+    if (n < m) why.push('Since n < m, surjections are impossible, but injections exist.');
+    why.push('S(n,m) is the Stirling number of the second kind: the number of ways to split A into m non-empty blocks; a surjection is such a split plus a bijection from the blocks to B.');
+    $('#countWhy').innerHTML = why.join(' ');
+  }
+  $('#cn').addEventListener('input', countDraw); $('#cm').addEventListener('input', countDraw);
+  countDraw();
+})();
+</script>
+</body>
+</html>
